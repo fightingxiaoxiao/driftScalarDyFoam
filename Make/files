@@ -1,0 +1,3 @@
+driftScalarDyFoam.C
+
+EXE = $(FOAM_APPBIN)/driftScalarDyFoam
