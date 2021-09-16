@@ -2,10 +2,10 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | www.openfoam.com
+    \\  /    A nd           | https://github.com/fightingxiaoxiao
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-    Copyright (C) 2011-2017 OpenFOAM Foundation
+    Copyright (C) 2021 Chenxiaoxiao
 -------------------------------------------------------------------------------
 License
     This file is part of OpenFOAM.
@@ -27,31 +27,24 @@ Application
     driftScalarDyFoam
 
 Group
-    grpBasicSolvers
+    extendSolvers
 
 Description
-    Passive scalar transport equation solver.
+    Passive transport solver for snow drifting.
 
-    \heading Solver details
+Solver details
     The equation is given by:
 
-    \f[
-        \ddt{T} + \div \left(\vec{U} T\right) - \div \left(D_T \grad T \right)
-        = S_{T}
-    \f]
-
     Where:
-    \vartable
         T       | Passive scalar
         D_T     | Diffusion coefficient
         S_T     | Source
-    \endvartable
 
-    \heading Required fields
-    \plaintable
+    Required fields
         T       | Passive scalar
         U       | Velocity [m/s]
-    \endplaintable
+        nut     | Turbulent viscosity [m^2/s]
+
 
 \*---------------------------------------------------------------------------*/
 
@@ -65,7 +58,7 @@ int main(int argc, char *argv[])
 {
     argList::addNote
     (
-        "transport solver for snow drifting."
+        "passive transport solver for snow drifting."
     );
     #include "addCheckCaseOptions.H"
     #include "setRootCaseLists.H"
@@ -87,8 +80,22 @@ int main(int argc, char *argv[])
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         // --- Pressure-velocity SIMPLE corrector
+        while (simple.correctNonOrthogonal())
         {
-            #include "TEqn.H"
+            fvScalarMatrix TEqn
+            (
+              fvm::ddt(T)
+            + fvm::div(phi, T)        // 被动输运  // passive transport
+            - fvm::laplacian(nut, T)  // 湍流扩散  // turbulent diffusion
+            + fvm::div(phiWf, T)      // 以速度w_f下落 // fall down with velcity w_f
+            ==
+              fvOptions(T)
+            );
+            TEqn.relax();
+            fvOptions.constrain(TEqn);
+            TEqn.solve();
+            fvOptions.correct(T);
+
         }
 
         runTime.write();

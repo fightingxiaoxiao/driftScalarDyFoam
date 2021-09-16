@@ -88,6 +88,8 @@ surfaceScalarField phiWf
     fvc::flux(Wf)
 );
 
+dimensionedScalar DT("DT", dimViscosity, transportProperties);
+
 
 #include "createPhi.H"
 
