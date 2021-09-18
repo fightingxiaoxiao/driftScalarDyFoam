@@ -49,7 +49,9 @@ Solver details
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "fvOptions.H"
+//#include "fvOptions.H"
+#include "fvModels.H"
+#include "fvConstraints.H"
 #include "simpleControl.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -60,7 +62,6 @@ int main(int argc, char *argv[])
     (
         "passive transport solver for snow drifting."
     );
-    #include "addCheckCaseOptions.H"
     #include "setRootCaseLists.H"
     #include "createTime.H"
     #include "createMesh.H"
@@ -75,7 +76,7 @@ int main(int argc, char *argv[])
 
     #include "CourantNo.H"
 
-    while (simple.loop())
+    while (simple.loop(runTime))
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
@@ -86,15 +87,15 @@ int main(int argc, char *argv[])
             (
               fvm::ddt(T)
             + fvm::div(phi, T)        // 被动输运  // passive transport
-            - fvm::laplacian(nut, T)  // 湍流扩散  // turbulent diffusion
             + fvm::div(phiWf, T)      // 以速度w_f下落 // fall down with velcity w_f
+            - fvm::laplacian(nut, T)  // 湍流扩散  // turbulent diffusion
             ==
-              fvOptions(T)
+              fvModels.source(T)
             );
             TEqn.relax();
-            fvOptions.constrain(TEqn);
+            fvConstraints.constrain(TEqn);
             TEqn.solve();
-            fvOptions.correct(T);
+            fvConstraints.constrain(T);
 
         }
 
