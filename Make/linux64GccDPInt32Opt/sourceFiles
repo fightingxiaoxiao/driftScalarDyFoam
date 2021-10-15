@@ -1,4 +1,0 @@
-SOURCE = \
-driftScalarDyFoam.C \
-
-# sources

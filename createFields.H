@@ -60,6 +60,11 @@ IOdictionary transportProperties
 
 dimensionedVector wf("wf", dimVelocity, transportProperties);
 
+// (Tominaga, 2011)
+// (Kang, 2018)
+dimensionedScalar S_ct("S_ct", 
+                        dimensionSet(0, 0, 0, 0, 0, 0 ,0), 
+                        transportProperties); 
 
 volVectorField Wf
 (
@@ -88,11 +93,40 @@ surfaceScalarField phiWf
     fvc::flux(Wf)
 );
 
-dimensionedScalar DT("DT", dimViscosity, transportProperties);
+dimensionedScalar M_("M_", 
+                    dimensionSet(0, 0, 0, 0, 0, 0 ,0), 
+                    Zero); 
+
+surfaceScalarField M
+(
+    IOobject
+    (
+        "M",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    mesh,
+    M_
+);
+
+
+Info<< "Reading erosionDepositionProperties\n" << endl;
+
+IOdictionary erosionDepositionProperties
+(
+    IOobject
+    (
+        "erosionDepositionProperties",
+        runTime.constant(),
+        mesh,
+        IOobject::MUST_READ_IF_MODIFIED,
+        IOobject::NO_WRITE
+    )
+);
 
 
 #include "createPhi.H"
 
 #include "createFvOptions.H"
-
-

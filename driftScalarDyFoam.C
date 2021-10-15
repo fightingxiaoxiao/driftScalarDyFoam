@@ -37,8 +37,6 @@ Solver details
 
     Where:
         T       | Passive scalar
-        D_T     | Diffusion coefficient
-        S_T     | Source
 
     Required fields
         T       | Passive scalar
@@ -75,28 +73,49 @@ int main(int argc, char *argv[])
 
     #include "CourantNo.H"
 
+    // get snow surface patch id
+    const fvPatchList& patches = mesh.boundary();
+    forAll(patches,i)
+    {
+        const std::string name = static_cast<std::string>(patches[i].name());
+        std::smatch m;
+        std::regex e("(.snow)");   // matches words beginning by "sub"
+        if(std::regex_search(name, m, e))
+        {
+            Info << " " << patches[i].name() << endl;
+        }
+    }
+
     while (simple.loop())
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        // --- Pressure-velocity SIMPLE corrector
         while (simple.correctNonOrthogonal())
         {
+            //必要时更新下落速度的面通量场
+            // update face flux of w_f
+            // phiWf = fvc::flux(Wf);
+
             fvScalarMatrix TEqn
             (
               fvm::ddt(T)
-            + fvm::div(phi, T)        // 被动输运  // passive transport
-            - fvm::laplacian(nut, T)  // 湍流扩散  // turbulent diffusion
-            + fvm::div(phiWf, T)      // 以速度w_f下落 // fall down with velcity w_f
+            + fvm::div(phi, T)              // 被动输运         // passive transport
+            + fvm::div(phiWf, T)            // 以速度w_f下落    // fall down with velocity w_f
+            - fvm::laplacian(nut/S_ct, T)   // 湍流扩散         // turbulent diffusion
             ==
               fvOptions(T)
             );
+
             TEqn.relax();
             fvOptions.constrain(TEqn);
             TEqn.solve();
             fvOptions.correct(T);
-
         }
+
+
+        // get shear stress on snow surface
+
+        // update mass exchange rate on snow surface(erosion&deposition)
 
         runTime.write();
     }
