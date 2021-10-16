@@ -48,6 +48,8 @@ Solver details
 
 #include "fvCFD.H"
 #include "fvOptions.H"
+#include "singlePhaseTransportModel.H"
+#include "turbulentTransportModel.H"
 #include "simpleControl.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -73,16 +75,19 @@ int main(int argc, char *argv[])
 
     #include "CourantNo.H"
 
+    // 获取雪面的Patch名
     // get snow surface patch id
+    std::vector<label> snowPatchList;
     const fvPatchList& patches = mesh.boundary();
     forAll(patches,i)
     {
-        const std::string name = static_cast<std::string>(patches[i].name());
-        std::smatch m;
-        std::regex e("(.snow)");   // matches words beginning by "sub"
-        if(std::regex_search(name, m, e))
+        const std::string name = static_cast<std::string>(patches[i].name()); // 强制转换std::string
+        std::smatch match;
+        std::regex e("(.snow)");   // 匹配包含".snow"字符串的边界
+        if(std::regex_search(name, match, e))
         {
-            Info << " " << patches[i].name() << endl;
+            Info << "Recognized snow surface: \"" << patches[i].name() << "\"." << endl;
+            snowPatchList.push_back(patches[i].index());
         }
     }
 
@@ -112,10 +117,50 @@ int main(int argc, char *argv[])
             fvOptions.correct(T);
         }
 
+        if (!turbulence)
+        {
+            FatalErrorInFunction
+            << "Unable to find turbulence model in the "
+            << "database" << exit(FatalError);
+            return 1;            
+        }
+        const volSymmTensorField& Reff = turbulence->devReff();
 
-        // get shear stress on snow surface
+        vector zNormal = vector(0.,0.,-1.);
+        for (label patchi : snowPatchList)
+        {
+            // 获取雪面的剪切应力
+            // get shear stress on snow surface
+            const vectorField &Sfp = mesh.Sf().boundaryField()[patchi];         // 面积矢量
+            const scalarField &magSfp = mesh.magSf().boundaryField()[patchi];   // 面积矢量模长
+            const scalarField &Tp = T.boundaryField()[patchi];                  // 边界处的雪漂浓度
 
-        // update mass exchange rate on snow surface(erosion&deposition)
+            const symmTensorField& Reffp = Reff.boundaryField()[patchi];        
+            
+            const scalar rhoAir = 1.225;
+            const scalar rhoSnow = 150;
+            vectorField& ssp = wallShearStress.boundaryFieldRef()[patchi];
+            ssp = (-Sfp/magSfp) & Reffp;                        // 剪切应力 
+            scalarField UShear = sqrt(mag(ssp)/rhoAir);         // 剪切风速模量
+
+            scalarField& Mp = M.boundaryFieldRef()[patchi];     
+
+            // 更新质量交换率（侵蚀/沉积）
+            // update mass exchange rate on snow surface (erosion & deposition)
+            const scalar UThreshold = 0.2;
+            forAll(Mp, i)
+            {
+                const scalar zArea = Sfp[i] & zNormal;
+                if (UShear[i] > UThreshold) // 侵蚀
+                {
+                    Mp[i] = -1. * rhoSnow * UShear[i] * (1.-sqr(UThreshold)/sqr(UShear[i])) * zArea;
+                }
+                else // 沉积
+                {
+                    Mp[i] = Tp[i] * mag(wf.value()) * zArea;
+                }
+            }
+        }
 
         runTime.write();
     }

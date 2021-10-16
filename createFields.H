@@ -43,6 +43,7 @@ volVectorField U
     mesh
 );
 
+#include "createPhi.H"
 
 Info<< "Reading transportProperties\n" << endl;
 
@@ -111,6 +112,20 @@ surfaceScalarField M
     M_
 );
 
+surfaceVectorField wallShearStress
+(
+    IOobject
+    (
+        "wallShearStress",
+        runTime.timeName(),
+        mesh,
+        IOobject::READ_IF_PRESENT,
+        IOobject::AUTO_WRITE
+    ),
+    mesh,
+    dimensionedVector(sqr(dimLength)/sqr(dimTime), Zero)
+);
+
 
 Info<< "Reading erosionDepositionProperties\n" << endl;
 
@@ -126,7 +141,13 @@ IOdictionary erosionDepositionProperties
     )
 );
 
+singlePhaseTransportModel laminarTransport(U, phi);
 
-#include "createPhi.H"
+autoPtr<incompressible::turbulenceModel> turbulence
+(
+    incompressible::turbulenceModel::New(U, phi, laminarTransport)
+);
+
+
 
 #include "createFvOptions.H"
