@@ -1,5 +1,2 @@
 /.vscode
-/log.wmake
-/simpleFoam.C
 /correctSaltationConcentration
-/.gitignore
