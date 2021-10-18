@@ -60,14 +60,17 @@ int main(int argc, char *argv[])
     (
         "passive transport solver for snow drifting."
     );
+    #include "postProcess.H"
+
     #include "addCheckCaseOptions.H"
     #include "setRootCaseLists.H"
     #include "createTime.H"
     #include "createMesh.H"
-
-    simpleControl simple(mesh);
-
+    #include "createControl.H"
     #include "createFields.H"
+    #include "initContinuityErrs.H"
+
+    turbulence->validate();
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -88,12 +91,22 @@ int main(int argc, char *argv[])
         {
             Info << "Recognized snow surface: \"" << patches[i].name() << "\"." << endl;
             snowPatchList.push_back(patches[i].index());
+            phiWf.boundaryFieldRef()[patches[i].index()] = Zero; // 雪面处下落速度为0
         }
     }
 
     while (simple.loop())
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
+
+        // --- Pressure-velocity SIMPLE corrector
+        {
+            #include "UEqn.H"
+            #include "pEqn.H"
+        }
+
+        laminarTransport.correct();
+        turbulence->correct();
 
         while (simple.correctNonOrthogonal())
         {
@@ -124,7 +137,9 @@ int main(int argc, char *argv[])
             << "database" << exit(FatalError);
             return 1;            
         }
-        const volSymmTensorField& Reff = turbulence->devReff();
+
+        Info << "Find turbulence model." <<endl;
+        volSymmTensorField Reff = turbulence->devReff();
 
         vector zNormal = vector(0.,0.,-1.);
         for (label patchi : snowPatchList)
@@ -136,24 +151,29 @@ int main(int argc, char *argv[])
             const scalarField &Tp = T.boundaryField()[patchi];                  // 边界处的雪漂浓度
 
             const symmTensorField& Reffp = Reff.boundaryField()[patchi];        
-            
+
             const scalar rhoAir = 1.225;
             const scalar rhoSnow = 150;
+
             vectorField& ssp = wallShearStress.boundaryFieldRef()[patchi];
-            ssp = (-Sfp/magSfp) & Reffp;                        // 剪切应力 
+
+            ssp = (-Sfp/magSfp) & Reffp;
+
+            // 剪切应力 
             scalarField UShear = sqrt(mag(ssp)/rhoAir);         // 剪切风速模量
 
-            scalarField& Mp = M.boundaryFieldRef()[patchi];     
+            scalarField& Mp = M.boundaryFieldRef()[patchi];   
 
             // 更新质量交换率（侵蚀/沉积）
             // update mass exchange rate on snow surface (erosion & deposition)
+            Info << "Update mass exchange rate." << endl; 
             const scalar UThreshold = 0.2;
             forAll(Mp, i)
             {
                 const scalar zArea = Sfp[i] & zNormal;
                 if (UShear[i] > UThreshold) // 侵蚀
                 {
-                    Mp[i] = -1. * rhoSnow * UShear[i] * (1.-sqr(UThreshold)/sqr(UShear[i])) * zArea;
+                    Mp[i] = -5e-4 * rhoSnow * UShear[i] * (1.-sqr(UThreshold)/sqr(UShear[i])) * zArea;
                 }
                 else // 沉积
                 {
