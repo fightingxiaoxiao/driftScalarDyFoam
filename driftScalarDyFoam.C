@@ -78,22 +78,12 @@ int main(int argc, char *argv[])
 
     #include "CourantNo.H"
 
-    // 获取雪面的Patch名
-    // get snow surface patch id
-    std::vector<label> snowPatchList;
-    const fvPatchList& patches = mesh.boundary();
-    forAll(patches,i)
-    {
-        const std::string name = static_cast<std::string>(patches[i].name()); // 强制转换std::string
-        std::smatch match;
-        std::regex e("(.snow)");   // 匹配包含".snow"字符串的边界
-        if(std::regex_search(name, match, e))
-        {
-            Info << "Recognized snow surface: \"" << patches[i].name() << "\"." << endl;
-            snowPatchList.push_back(patches[i].index());
-            phiWf.boundaryFieldRef()[patches[i].index()] = Zero; // 雪面处下落速度为0
-        }
-    }
+    #include "findSnowPatch.H"
+
+    const scalar rhoAir = readScalar(erosionDepositionProperties.lookup("rhoAir"));
+    const scalar rhoSnow = readScalar(erosionDepositionProperties.lookup("rhoSnow"));
+    const scalar ca = readScalar(erosionDepositionProperties.lookup("ca"));
+    const scalar Uthreshold = readScalar(erosionDepositionProperties.lookup("Uthreshold"));
 
     while (simple.loop())
     {
@@ -110,24 +100,7 @@ int main(int argc, char *argv[])
 
         while (simple.correctNonOrthogonal())
         {
-            //必要时更新下落速度的面通量场
-            // update face flux of w_f
-            // phiWf = fvc::flux(Wf);
-
-            fvScalarMatrix TEqn
-            (
-              fvm::ddt(T)
-            + fvm::div(phi, T)              // 被动输运         // passive transport
-            + fvm::div(phiWf, T)            // 以速度w_f下落    // fall down with velocity w_f
-            - fvm::laplacian(nut/S_ct, T)   // 湍流扩散         // turbulent diffusion
-            ==
-              fvOptions(T)
-            );
-
-            TEqn.relax();
-            fvOptions.constrain(TEqn);
-            TEqn.solve();
-            fvOptions.correct(T);
+            #include "TEqn.H"
         }
 
         if (!turbulence)
@@ -152,9 +125,6 @@ int main(int argc, char *argv[])
 
             const symmTensorField& Reffp = Reff.boundaryField()[patchi];        
 
-            const scalar rhoAir = 1.225;
-            const scalar rhoSnow = 150;
-
             vectorField& ssp = wallShearStress.boundaryFieldRef()[patchi];
 
             ssp = (-Sfp/magSfp) & Reffp;
@@ -167,13 +137,12 @@ int main(int argc, char *argv[])
             // 更新质量交换率（侵蚀/沉积）
             // update mass exchange rate on snow surface (erosion & deposition)
             Info << "Update mass exchange rate." << endl; 
-            const scalar UThreshold = 0.2;
             forAll(Mp, i)
             {
                 const scalar zArea = Sfp[i] & zNormal;
-                if (UShear[i] > UThreshold) // 侵蚀
+                if (UShear[i] > Uthreshold) // 侵蚀
                 {
-                    Mp[i] = -5e-4 * rhoSnow * UShear[i] * (1.-sqr(UThreshold)/sqr(UShear[i])) * zArea;
+                    Mp[i] = -ca * rhoSnow * UShear[i] * (1.-sqr(Uthreshold)/sqr(UShear[i])) * zArea;
                 }
                 else // 沉积
                 {
