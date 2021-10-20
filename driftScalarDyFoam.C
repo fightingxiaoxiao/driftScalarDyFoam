@@ -76,8 +76,6 @@ int main(int argc, char *argv[])
 
     Info<< "\nCalculating scalar transport\n" << endl;
 
-    #include "CourantNo.H"
-
     #include "findSnowPatch.H"
 
     const scalar rhoAir = readScalar(erosionDepositionProperties.lookup("rhoAir"));
