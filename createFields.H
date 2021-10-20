@@ -138,7 +138,7 @@ volVectorField wallShearStress
         "wallShearStress",
         runTime.timeName(),
         mesh,
-        IOobject::READ_IF_PRESENT,
+        IOobject::NO_READ,
         IOobject::AUTO_WRITE
     ),
     mesh,

@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
         {
             #include "TEqn.H"
         }
-
+        
         if (!turbulence)
         {
             FatalErrorInFunction
@@ -111,7 +111,6 @@ int main(int argc, char *argv[])
             return 1;            
         }
 
-        Info << "Find turbulence model." <<endl;
         volSymmTensorField Reff = turbulence->devReff();
 
         vector zNormal = vector(0.,0.,-1.);
