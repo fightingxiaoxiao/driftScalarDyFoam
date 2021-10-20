@@ -151,6 +151,7 @@ int main(int argc, char *argv[])
         }
 
         runTime.write();
+        runTime.printExecutionTime(Info);
     }
 
     Info<< "End\n" << endl;

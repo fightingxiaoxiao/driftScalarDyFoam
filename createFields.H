@@ -13,6 +13,7 @@ volScalarField T
     mesh
 );
 
+/*
 Info<< "Reading field nut\n" << endl;
 
 volScalarField nut
@@ -27,7 +28,7 @@ volScalarField nut
     ),
     mesh
 );
-
+*/
 Info<< "Reading field p\n" << endl;
 volScalarField p
 (
