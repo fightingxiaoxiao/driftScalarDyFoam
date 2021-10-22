@@ -52,6 +52,7 @@ Solver details
 #include "turbulentTransportModel.H"
 #include "simpleControl.H"
 
+#include "primitivePatchInterpolation.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
@@ -146,7 +147,18 @@ int main(int argc, char *argv[])
                     Mp[i] = Tp[i] * mag(wf.value()) * zArea;
                 }
             }
+
+            primitivePatchInterpolation facePointInterp(mesh.boundaryMesh()[patchi]);   //初始化插值类
+            auto Mpp = facePointInterp.faceToPointInterpolate(Mp);                      //面心向节点插值
+            Info << "Successfully interpolate "<< Mpp().size() << " points." << endl;
+
+            forAll(Mpp(), i)
+            {
+                Info << Mpp()[i] << endl; 
+            }
         }
+
+
 
         runTime.write();
         runTime.printExecutionTime(Info);
