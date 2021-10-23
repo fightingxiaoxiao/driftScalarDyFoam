@@ -132,6 +132,20 @@ volScalarField M
     M_
 );
 
+volScalarField deltaH
+(
+    IOobject
+    (
+        "deltaH",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::NO_WRITE
+    ),
+    mesh,
+    dimensionedScalar("M_", dimensionSet(0, 0, 0, 0, 0, 0 ,0), Zero)
+);
+
 volVectorField wallShearStress
 (
     IOobject

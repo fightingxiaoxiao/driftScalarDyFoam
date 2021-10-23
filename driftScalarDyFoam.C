@@ -51,6 +51,7 @@ Solver details
 #include "singlePhaseTransportModel.H"
 #include "turbulentTransportModel.H"
 #include "simpleControl.H"
+#include "dynamicFvMesh.H"
 
 #include "primitivePatchInterpolation.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -66,7 +67,11 @@ int main(int argc, char *argv[])
     #include "addCheckCaseOptions.H"
     #include "setRootCaseLists.H"
     #include "createTime.H"
-    #include "createMesh.H"
+    //Foam::Info<< "Create runStage\n" << Foam::endl;
+
+    //Foam::Time runStage(Foam::Time::controlDictName, args);
+    //#include "createMesh.H"
+    #include "createNamedDynamicFvMesh.H"
     #include "createControl.H"
     #include "createFields.H"
     #include "initContinuityErrs.H"
@@ -84,30 +89,44 @@ int main(int argc, char *argv[])
     const scalar ca = readScalar(erosionDepositionProperties.lookup("ca"));
     const scalar Uthreshold = readScalar(erosionDepositionProperties.lookup("Uthreshold"));
 
+    const label nSubCycles = 2000;
+
     while (simple.loop())
     {
-        Info<< "Time = " << runTime.timeName() << nl << endl;
+        Info << nl << "-----------------------" << endl;
+        Info << "Stage = " << runTime.timeIndex() << endl;
+        Info << "Physical Time = " << runTime.timeName() << endl;
+        Info << "-----------------------" << endl;
 
-        // --- Pressure-velocity SIMPLE corrector
+        Info << "\nUpdate Mesh" << nl << endl;
+        mesh.update();
+
+        TimeState subCycleTimeState = runTime.subCycle(nSubCycles);
+
+        for (label cycleI = 0; cycleI < nSubCycles; cycleI++)
         {
-            #include "UEqn.H"
-            #include "pEqn.H"
+            Info<< "\n\nsubCycles = " << runTime.timeName() << nl << endl;
+            runTime++;
+            // --- Pressure-velocity SIMPLE corrector
+            {
+                #include "UEqn.H"
+                #include "pEqn.H"
+            }
+            laminarTransport.correct();
+            turbulence->correct();
+            while (simple.correctNonOrthogonal())
+            {
+                #include "TEqn.H"
+            }
         }
+        runTime.endSubCycle();
 
-        laminarTransport.correct();
-        turbulence->correct();
-
-        while (simple.correctNonOrthogonal())
-        {
-            #include "TEqn.H"
-        }
-        
         if (!turbulence)
         {
             FatalErrorInFunction
             << "Unable to find turbulence model in the "
             << "database" << exit(FatalError);
-            return 1;            
+            return 1;
         }
 
         volSymmTensorField Reff = turbulence->devReff();
@@ -120,6 +139,7 @@ int main(int argc, char *argv[])
             const vectorField &Sfp = mesh.Sf().boundaryField()[patchi];         // 面积矢量
             const scalarField &magSfp = mesh.magSf().boundaryField()[patchi];   // 面积矢量模长
             const scalarField &Tp = T.boundaryField()[patchi];                  // 边界处的雪漂浓度
+            
 
             const symmTensorField& Reffp = Reff.boundaryField()[patchi];        
 
@@ -130,7 +150,8 @@ int main(int argc, char *argv[])
             // 剪切应力 
             scalarField UShear = sqrt(mag(ssp)/rhoAir);         // 剪切风速模量
 
-            scalarField& Mp = M.boundaryFieldRef()[patchi];   
+            scalarField& Mp = M.boundaryFieldRef()[patchi];
+            scalarField &deltaHp = deltaH.boundaryFieldRef()[patchi];
 
             // 更新质量交换率（侵蚀/沉积）
             // update mass exchange rate on snow surface (erosion & deposition)
@@ -140,29 +161,22 @@ int main(int argc, char *argv[])
                 const scalar zArea = Sfp[i] & zNormal;
                 if (UShear[i] > Uthreshold) // 侵蚀
                 {
-                    Mp[i] = -ca * rhoSnow * UShear[i] * (1.-sqr(Uthreshold)/sqr(UShear[i])) * zArea;
+                    //Mp[i] = -ca * rhoSnow * UShear[i] * (1.-sqr(Uthreshold)/sqr(UShear[i])) * zArea;
+                    Mp[i] = -ca * rhoSnow * (sqr(UShear[i]) - sqr(Uthreshold)) * zArea;
                 }
                 else // 沉积
                 {
                     Mp[i] = Tp[i] * mag(wf.value()) * zArea;
                 }
-            }
 
-            primitivePatchInterpolation facePointInterp(mesh.boundaryMesh()[patchi]);   //初始化插值类
-            auto Mpp = facePointInterp.faceToPointInterpolate(Mp);                      //面心向节点插值
-            Info << "Successfully interpolate "<< Mpp().size() << " points." << endl;
-
-            forAll(Mpp(), i)
-            {
-                Info << Mpp()[i] << endl; 
+                deltaHp[i] += Mp[i] / rhoSnow / zArea * runTime.deltaTValue();
             }
         }
-
-
 
         runTime.write();
         runTime.printExecutionTime(Info);
     }
+
 
     Info<< "End\n" << endl;
 
