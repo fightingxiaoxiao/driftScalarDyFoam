@@ -89,9 +89,9 @@ int main(int argc, char *argv[])
     const scalar ca = readScalar(erosionDepositionProperties.lookup("ca"));
     const scalar Uthreshold = readScalar(erosionDepositionProperties.lookup("Uthreshold"));
 
-    const label nSubCycles = 2000;
+    const label nSubCycles = readLabel(erosionDepositionProperties.lookup("nSubCycles"));
 
-    while (simple.loop())
+    while (runTime.run())
     {
         Info << nl << "-----------------------" << endl;
         Info << "Stage = " << runTime.timeIndex() << endl;
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
                 deltaHp[i] += Mp[i] / rhoSnow / zArea * runTime.deltaTValue();
             }
         }
-
+        ++runTime;
         runTime.write();
         runTime.printExecutionTime(Info);
     }
