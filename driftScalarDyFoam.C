@@ -172,9 +172,9 @@ int main(int argc, char *argv[])
                 deltaHp[i] += Mp[i] / rhoSnow / zArea * runTime.deltaTValue();
             }
         }
-        ++runTime;
         runTime.write();
         runTime.printExecutionTime(Info);
+        ++runTime;
     }
 
 
