@@ -52,6 +52,7 @@ Solver details
 #include "turbulentTransportModel.H"
 #include "simpleControl.H"
 #include "dynamicFvMesh.H"
+#include "SolverPerformance.H"
 
 #include "primitivePatchInterpolation.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -91,6 +92,8 @@ int main(int argc, char *argv[])
 
     const label nSubCycles = readLabel(erosionDepositionProperties.lookup("nSubCycles"));
 
+    label nStage = 0;
+
     while (runTime.run())
     {
         Info << nl << "-----------------------" << endl;
@@ -100,7 +103,7 @@ int main(int argc, char *argv[])
 
         Info << "\nUpdate Mesh" << nl << endl;
         mesh.update();
-
+        
         TimeState subCycleTimeState = runTime.subCycle(nSubCycles);
 
         for (label cycleI = 0; cycleI < nSubCycles; cycleI++)
@@ -114,10 +117,21 @@ int main(int argc, char *argv[])
             }
             laminarTransport.correct();
             turbulence->correct();
+
+            solverPerformance Tres;
             while (simple.correctNonOrthogonal())
             {
                 #include "TEqn.H"
             }
+            
+            if (Tres.initialResidual() < 1e-6 && nStage > 0)
+            {
+                runTime.printExecutionTime(Info);
+                Info << "nStage = " <<nStage << endl;
+                Info << "Subcycle converged." << endl;
+                break;
+            }
+            runTime.printExecutionTime(Info);
         }
         runTime.endSubCycle();
 
@@ -175,8 +189,8 @@ int main(int argc, char *argv[])
         runTime.write();
         runTime.printExecutionTime(Info);
         ++runTime;
+        ++nStage;
     }
-
 
     Info<< "End\n" << endl;
 

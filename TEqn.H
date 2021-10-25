@@ -10,9 +10,8 @@
 
     TEqn.relax();
     fvOptions.constrain(TEqn);
-    TEqn.solve();
+    Tres = TEqn.solve();
     fvOptions.correct(T);
-
 /*
     forAll(T, i)
     {
