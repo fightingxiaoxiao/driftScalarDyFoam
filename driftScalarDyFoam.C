@@ -100,12 +100,13 @@ int main(int argc, char *argv[])
         Info << "Stage = " << runTime.timeIndex() << endl;
         Info << "Physical Time = " << runTime.timeName() << endl;
         Info << "-----------------------" << endl;
-
+        
         Info << "\nUpdate Mesh" << nl << endl;
         mesh.update();
-        
+
         TimeState subCycleTimeState = runTime.subCycle(nSubCycles);
 
+        // 启动单个阶段内的子循环迭代
         for (label cycleI = 0; cycleI < nSubCycles; cycleI++)
         {
             Info<< "\n\nsubCycles = " << runTime.timeName() << nl << endl;
@@ -115,79 +116,99 @@ int main(int argc, char *argv[])
                 #include "UEqn.H"
                 #include "pEqn.H"
             }
+
+            // RANS
             laminarTransport.correct();
             turbulence->correct();
 
+            // 标量输运
+            // scalar transport
             solverPerformance Tres;
             while (simple.correctNonOrthogonal())
             {
                 #include "TEqn.H"
             }
             
-            if (Tres.initialResidual() < 1e-6 && nStage > 0)
+            // 由于扩散需要获取湍流粘度nut,故检查湍流模型
+            if (!turbulence)
             {
-                runTime.printExecutionTime(Info);
-                Info << "nStage = " <<nStage << endl;
-                Info << "Subcycle converged." << endl;
-                break;
+                FatalErrorInFunction
+                << "Unable to find turbulence model in the "
+                << "database" << exit(FatalError);
+                return 1;
             }
-            runTime.printExecutionTime(Info);
+
+            volSymmTensorField Reff = turbulence->devReff();
+
+            // 修正质量交换率M
+            vector zNormal = vector(0.,0.,-1.);
+            for (label patchi : snowPatchList)
+            {
+                // 获取雪面的剪切应力
+                // get shear stress on snow surface
+                const vectorField &Sfp = mesh.Sf().boundaryField()[patchi];         // 面积矢量
+                const scalarField &magSfp = mesh.magSf().boundaryField()[patchi];   // 面积矢量模长
+                const scalarField &Tp = T.boundaryField()[patchi];                  // 边界处的雪漂浓度
+
+                const symmTensorField& Reffp = Reff.boundaryField()[patchi];        
+
+                vectorField& ssp = wallShearStress.boundaryFieldRef()[patchi];
+
+                ssp = (-Sfp/magSfp) & Reffp;    // 剪切应力 
+
+                
+                scalarField UShear = sqrt(mag(ssp)/rhoAir);         // 剪切风速模量
+
+                scalarField& Mp = M.boundaryFieldRef()[patchi];
+
+                // 更新质量交换率（侵蚀/沉积）
+                // update mass exchange rate on snow surface (erosion & deposition)
+                Info << "Update mass exchange rate." << endl; 
+                forAll(Mp, i)
+                {
+                    const scalar zArea = Sfp[i] & zNormal;
+                    if (UShear[i] > Uthreshold) // 侵蚀
+                    {
+                        //Mp[i] = -ca * rhoSnow * UShear[i] * (1.-sqr(Uthreshold)/sqr(UShear[i])) * zArea;
+                        Mp[i] = -ca * rhoSnow * (sqr(UShear[i]) - sqr(Uthreshold)) * zArea;
+                    }
+                    else // 沉积
+                    {
+                        Mp[i] = Tp[i] * mag(wf.value()) * zArea;
+                    }
+
+                    //tmpDeltaH[i] = Mp[i] / rhoSnow / zArea * runTime.deltaTValue();
+                }
+            }
+
+            runTime.printExecutionTime(Info);   // 打印子循环的运行时
+
+            // 检查是否达到收敛
+            if (Tres.initialResidual() < 1e-6 && nStage > 0)
+            {   
+                Info << "Subcycle converged." << endl;
+                break; // 跳出子循环
+            }
         }
-        runTime.endSubCycle();
+        runTime.endSubCycle(); //结束子循环
 
-        if (!turbulence)
-        {
-            FatalErrorInFunction
-            << "Unable to find turbulence model in the "
-            << "database" << exit(FatalError);
-            return 1;
-        }
-
-        volSymmTensorField Reff = turbulence->devReff();
-
+        // 计算根据M计算deltaH
         vector zNormal = vector(0.,0.,-1.);
         for (label patchi : snowPatchList)
         {
-            // 获取雪面的剪切应力
-            // get shear stress on snow surface
-            const vectorField &Sfp = mesh.Sf().boundaryField()[patchi];         // 面积矢量
-            const scalarField &magSfp = mesh.magSf().boundaryField()[patchi];   // 面积矢量模长
-            const scalarField &Tp = T.boundaryField()[patchi];                  // 边界处的雪漂浓度
-            
-
-            const symmTensorField& Reffp = Reff.boundaryField()[patchi];        
-
-            vectorField& ssp = wallShearStress.boundaryFieldRef()[patchi];
-
-            ssp = (-Sfp/magSfp) & Reffp;
-
-            // 剪切应力 
-            scalarField UShear = sqrt(mag(ssp)/rhoAir);         // 剪切风速模量
-
-            scalarField& Mp = M.boundaryFieldRef()[patchi];
             scalarField &deltaHp = deltaH.boundaryFieldRef()[patchi];
 
-            // 更新质量交换率（侵蚀/沉积）
-            // update mass exchange rate on snow surface (erosion & deposition)
-            Info << "Update mass exchange rate." << endl; 
+            const scalarField &Mp = M.boundaryField()[patchi];
+            const vectorField &Sfp = mesh.Sf().boundaryField()[patchi]; 
+
             forAll(Mp, i)
             {
                 const scalar zArea = Sfp[i] & zNormal;
-                if (UShear[i] > Uthreshold) // 侵蚀
-                {
-                    //Mp[i] = -ca * rhoSnow * UShear[i] * (1.-sqr(Uthreshold)/sqr(UShear[i])) * zArea;
-                    Mp[i] = -ca * rhoSnow * (sqr(UShear[i]) - sqr(Uthreshold)) * zArea;
-                }
-                else // 沉积
-                {
-                    Mp[i] = Tp[i] * mag(wf.value()) * zArea;
-                }
-
-                deltaHp[i] += Mp[i] / rhoSnow / zArea * runTime.deltaTValue();
+                deltaHp[i] = Mp[i] / rhoSnow / zArea * runTime.deltaTValue();
             }
         }
+
         runTime.write();
-        runTime.printExecutionTime(Info);
         ++runTime;
         ++nStage;
     }
