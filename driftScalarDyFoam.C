@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
             runTime.printExecutionTime(Info);   // 打印子循环的运行时
 
             // 检查是否达到收敛
-            if (Tres.initialResidual() < residualT)
+            if (Tres.initialResidual() < residualT && nStage > 0)
             {   
                 Info << "Subcycle converged." << endl;
                 break; // 跳出子循环
