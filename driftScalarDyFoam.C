@@ -90,6 +90,7 @@ int main(int argc, char *argv[])
     const scalar ca = readScalar(erosionDepositionProperties.lookup("ca"));
     const scalar Uthreshold = readScalar(erosionDepositionProperties.lookup("Uthreshold"));
 
+    const scalar residualT = readScalar(erosionDepositionProperties.lookup("residualT"));
     const label nSubCycles = readLabel(erosionDepositionProperties.lookup("nSubCycles"));
 
     label nStage = 0;
@@ -184,7 +185,7 @@ int main(int argc, char *argv[])
             runTime.printExecutionTime(Info);   // 打印子循环的运行时
 
             // 检查是否达到收敛
-            if (Tres.initialResidual() < 1e-6 && nStage > 0)
+            if (Tres.initialResidual() < residualT)
             {   
                 Info << "Subcycle converged." << endl;
                 break; // 跳出子循环
