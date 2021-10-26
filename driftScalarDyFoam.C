@@ -101,9 +101,6 @@ int main(int argc, char *argv[])
         Info << "Stage = " << runTime.timeIndex() << endl;
         Info << "Physical Time = " << runTime.timeName() << endl;
         Info << "-----------------------" << endl;
-        
-        Info << "\nUpdate Mesh" << nl << endl;
-        mesh.update();
 
         TimeState subCycleTimeState = runTime.subCycle(nSubCycles);
 
@@ -208,9 +205,13 @@ int main(int argc, char *argv[])
                 deltaHp[i] += Mp[i] / rhoSnow / zArea * runTime.deltaTValue();
             }
         }
-
+        
         runTime.write();
         ++runTime;
+
+        Info << "\nUpdate Mesh" << nl << endl;
+        mesh.update();
+
         ++nStage;
     }
 
