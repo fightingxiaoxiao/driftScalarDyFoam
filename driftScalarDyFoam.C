@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
             forAll(Mp, i)
             {
                 const scalar zArea = Sfp[i] & zNormal;
-                deltaHp[i] = Mp[i] / rhoSnow / zArea * runTime.deltaTValue();
+                deltaHp[i] += Mp[i] / rhoSnow / zArea * runTime.deltaTValue();
             }
         }
 
