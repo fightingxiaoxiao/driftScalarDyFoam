@@ -209,6 +209,11 @@ int main(int argc, char *argv[])
         runTime.write();
         ++runTime;
 
+        if (!runTime.run())
+        {
+            break;
+        }
+        
         Info << "\nUpdate Mesh" << nl << endl;
         mesh.update();
 
