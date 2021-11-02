@@ -97,10 +97,15 @@ int main(int argc, char *argv[])
 
     while (runTime.run())
     {
+        ++runTime;
+
         Info << nl << "-----------------------" << endl;
         Info << "Stage = " << runTime.timeIndex() << endl;
         Info << "Physical Time = " << runTime.timeName() << endl;
         Info << "-----------------------" << endl;
+
+        Info << "\nUpdate Mesh" << nl << endl;
+        mesh.update();
 
         TimeState subCycleTimeState = runTime.subCycle(nSubCycles);
 
@@ -207,20 +212,11 @@ int main(int argc, char *argv[])
         }
         
         runTime.write();
-        ++runTime;
-
-        if (!runTime.run())
-        {
-            break;
-        }
-        
-        Info << "\nUpdate Mesh" << nl << endl;
-        mesh.update();
 
         ++nStage;
     }
 
-    Info<< "End\n" << endl;
+    
 
     return 0;
 }
