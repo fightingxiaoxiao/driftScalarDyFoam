@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
                     }
                     else // 沉积
                     {
-                        Mp[i] = Tp[i] * mag(wf.value()) * zArea;
+                        Mp[i] = Tp[i] * mag(wf.value()) * (1 - sqr(UShear[i])/sqr(Uthreshold))* zArea;
                     }
 
                     //tmpDeltaH[i] = Mp[i] / rhoSnow / zArea * runTime.deltaTValue();
