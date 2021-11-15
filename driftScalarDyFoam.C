@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     const scalar ca = readScalar(erosionDepositionProperties.lookup("ca"));
     const scalar Uthreshold = readScalar(erosionDepositionProperties.lookup("Uthreshold"));
 
-    const scalar residualT = readScalar(erosionDepositionProperties.lookup("residualT"));
+    //const scalar residualT = readScalar(erosionDepositionProperties.lookup("residualT"));
     const label nSubCycles = readLabel(erosionDepositionProperties.lookup("nSubCycles"));
 
     label nStage = 0;
@@ -101,6 +101,7 @@ int main(int argc, char *argv[])
 
         Info << nl << "-----------------------" << endl;
         Info << "Stage = " << runTime.timeIndex() << endl;
+        nStage = runTime.timeIndex();
         Info << "Physical Time = " << runTime.timeName() << endl;
         Info << "-----------------------" << endl;
 
@@ -111,8 +112,8 @@ int main(int argc, char *argv[])
 
         // 启动单个阶段内的子循环迭代
         for (label cycleI = 0; cycleI < nSubCycles; cycleI++)
-        {
-            Info<< "\n\nsubCycles = " << runTime.timeName() << nl << endl;
+        { 
+            Info<< "\nStage " << nStage  << " | p U subCycles(" << cycleI+1 << "/" << nSubCycles << ")"<< nl << endl;
             runTime++;
             // --- Pressure-velocity SIMPLE corrector
             {
@@ -152,6 +153,8 @@ int main(int argc, char *argv[])
         label TCycle = nSubCycles;
         while (TCycle)
         {
+            Info<< "\nStage " << nStage  << " | T subCycles(" << nSubCycles - TCycle + 1 << "/" << nSubCycles << ")"<< nl << endl;
+            
             #include "TEqn.H"
 
             volSymmTensorField Reff = turbulence->devReff();
@@ -175,7 +178,7 @@ int main(int argc, char *argv[])
 
                 // 更新质量交换率（侵蚀/沉积）
                 // update mass exchange rate on snow surface (erosion & deposition)
-                Info << "Update mass exchange rate." << endl;
+                //Info << "Update mass exchange rate." << endl;
                 forAll(Mp, i)
                 {
                     const scalar zArea = Sfp[i] & zNormal;
