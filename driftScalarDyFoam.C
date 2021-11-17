@@ -90,7 +90,11 @@ int main(int argc, char *argv[])
     const scalar ca = readScalar(erosionDepositionProperties.lookup("ca"));
     const scalar Uthreshold = readScalar(erosionDepositionProperties.lookup("Uthreshold"));
 
-    //const scalar residualT = readScalar(erosionDepositionProperties.lookup("residualT"));
+    dimensionedVector UResidual__("UResidual", dimVelocity, erosionDepositionProperties);
+    const vector UResidual_ = UResidual__.value();
+    
+    const scalar pResidual_ = readScalar(erosionDepositionProperties.lookup("pResidual"));
+
     const label nSubCycles = readLabel(erosionDepositionProperties.lookup("nSubCycles"));
 
     label nStage = 0;
@@ -116,8 +120,8 @@ int main(int argc, char *argv[])
             Info<< "\nStage " << nStage  << " | p U subCycles(" << cycleI+1 << "/" << nSubCycles << ")"<< nl << endl;
             runTime++;
             // --- Pressure-velocity SIMPLE corrector
-            bool pConverged = false;
-            bool UConverged = false;
+            scalar pResidual = 1;
+            vector UResidual = vector(1, 1, 1);
             {
                 #include "UEqn.H"
                 #include "pEqn.H"
@@ -129,7 +133,12 @@ int main(int argc, char *argv[])
 
             runTime.printExecutionTime(Info);   // 打印子循环的运行时
 
-            if(pConverged && UConverged)
+            if(
+                    UResidual[0] < UResidual_[0] 
+                &&  UResidual[1] < UResidual_[1] 
+                &&  UResidual[2] < UResidual_[2] 
+                &&  pResidual < pResidual_
+            )
             {
                 Info << "p U subCycles converged." << endl;
                 break;
