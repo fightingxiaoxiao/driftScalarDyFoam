@@ -18,7 +18,7 @@
 
     if (simple.momentumPredictor())
     {
-        solve(UEqn == -fvc::grad(p));
+        UConverged = solve(UEqn == -fvc::grad(p)).converged();
 
         fvOptions.correct(U);
     }

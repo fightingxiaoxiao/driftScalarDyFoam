@@ -30,7 +30,8 @@
 
         pEqn.setReference(pRefCell, pRefValue);
 
-        pEqn.solve();
+        solverPerformance pInfo = pEqn.solve();
+        pConverged = pInfo.converged();
 
         if (simple.finalNonOrthogonalIter())
         {

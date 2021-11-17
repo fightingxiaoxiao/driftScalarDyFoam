@@ -116,6 +116,8 @@ int main(int argc, char *argv[])
             Info<< "\nStage " << nStage  << " | p U subCycles(" << cycleI+1 << "/" << nSubCycles << ")"<< nl << endl;
             runTime++;
             // --- Pressure-velocity SIMPLE corrector
+            bool pConverged = false;
+            bool UConverged = false;
             {
                 #include "UEqn.H"
                 #include "pEqn.H"
@@ -126,6 +128,12 @@ int main(int argc, char *argv[])
             turbulence->correct();
 
             runTime.printExecutionTime(Info);   // 打印子循环的运行时
+
+            if(pConverged && UConverged)
+            {
+                Info << "p U subCycles converged." << endl;
+                break;
+            }
         }
         runTime.endSubCycle(); //结束子循环
 
