@@ -10,7 +10,8 @@
 
     TEqn.relax();
     fvOptions.constrain(TEqn);
-    Tres = TEqn.solve();
+    solverPerformance TInfo = TEqn.solve();
+    TResidual = TInfo.initialResidual();
     fvOptions.correct(T);
 /*
     forAll(T, i)

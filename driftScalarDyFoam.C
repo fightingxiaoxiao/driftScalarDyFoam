@@ -94,6 +94,8 @@ int main(int argc, char *argv[])
     const vector UResidual_ = UResidual__.value();
     
     const scalar pResidual_ = readScalar(erosionDepositionProperties.lookup("pResidual"));
+    const scalar TResidual_ = readScalar(erosionDepositionProperties.lookup("TResidual"));
+
 
     const label nSubCycles = readLabel(erosionDepositionProperties.lookup("nSubCycles"));
 
@@ -171,7 +173,9 @@ int main(int argc, char *argv[])
         while (TCycle)
         {
             Info<< "\nStage " << nStage  << " | T subCycles(" << nSubCycles - TCycle + 1 << "/" << nSubCycles << ")"<< nl << endl;
-            
+
+            scalar TResidual = 1;
+
             #include "TEqn.H"
 
             volSymmTensorField Reff = turbulence->devReff();
@@ -213,6 +217,11 @@ int main(int argc, char *argv[])
                 }
             }
             // 计算根据M计算deltaH
+            if (TResidual < TResidual_)
+            {
+                Info << "T subCycles converged." << endl;
+                break;
+            }
             TCycle--;
         }
 
