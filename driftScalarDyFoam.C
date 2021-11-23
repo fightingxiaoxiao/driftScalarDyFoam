@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
         ++runTime;
 
         Info << nl << "-----------------------" << endl;
-        Info << "Stage = " << runTime.timeIndex() << endl;
+        Info << "Stage = " << runTime.timeIndex()-1 << endl;
         nStage = runTime.timeIndex();
         Info << "Physical Time = " << runTime.timeName() << endl;
         Info << "-----------------------" << endl;
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
         // 启动单个阶段内的子循环迭代
         for (label cycleI = 0; cycleI < nSubCycles; cycleI++)
         { 
-            Info<< "\nStage " << nStage  << " | p U subCycles(" << cycleI+1 << "/" << nSubCycles << ")"<< nl << endl;
+            Info<< "\nStage " << nStage - 1 << " | p U subCycles(" << cycleI+1 << "/" << nSubCycles << ")"<< nl << endl;
             runTime++;
             // --- Pressure-velocity SIMPLE corrector
             scalar pResidual = 1;
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
         label TCycle = nSubCycles;
         while (TCycle)
         {
-            Info<< "\nStage " << nStage  << " | T subCycles(" << nSubCycles - TCycle + 1 << "/" << nSubCycles << ")"<< nl << endl;
+            Info<< "\nStage " << nStage - 1 << " | T subCycles(" << nSubCycles - TCycle + 1 << "/" << nSubCycles << ")"<< nl << endl;
 
             scalar TResidual = 1;
 
