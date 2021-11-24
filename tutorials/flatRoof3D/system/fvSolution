@@ -1,0 +1,92 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    p
+    {
+        solver           GAMG;
+        //preconditioner   DIC;
+        smoother         DIC;
+        tolerance        1e-8;
+        relTol           0.01;
+    }
+
+    "(U|k|epsilon|omega)"
+    {
+        solver           PBiCGStab;
+        preconditioner   DILU;
+        //solver          smoothSolver;
+        //smoother        GaussSeidel;
+        tolerance        1e-8;
+        relTol           0.01;
+    }
+
+    T
+    {
+        solver           PBiCGStab;
+        preconditioner   DILU;
+        //solver           GAMG;
+        //preconditioner   DIC;
+        //smoother        GaussSeidel;
+        tolerance        1e-6;
+        relTol           0.01;
+    }
+
+
+    cellMotionUFinal
+    {
+        solver          GAMG;
+        smoother        GaussSeidel;
+        tolerance       1e-08;
+        relTol          0;
+    }
+
+    "(cellMotionU|cellMotionUz)"
+    {
+        $p;
+        tolerance       1e-08;
+        relTol          0;
+    }
+}
+
+SIMPLE
+{
+    nNonOrthogonalCorrectors 0;
+    consistent               true;
+    pRefCell                 0;
+    pRefValue                0;
+}
+
+relaxationFactors
+{
+    equations
+    {
+        p                    0.8;
+        U                    0.9;
+        "(k|epsilon|omega)"  0.9;
+        T                    0.7;
+
+    }
+}
+
+cache
+{
+    grad(U);
+}
+
+
+// ************************************************************************* //

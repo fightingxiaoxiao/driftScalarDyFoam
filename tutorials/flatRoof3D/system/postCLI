@@ -1,0 +1,106 @@
+wallShearStress1
+{
+    // Mandatory entries (unmodifiable)
+    type            wallShearStress;
+    libs            (fieldFunctionObjects);
+
+    // Optional entries (runtime modifiable)
+    patches         (roof.snow);
+
+    writePrecision  8;
+    writeToFile     true;
+    useUserTime     true;
+    region          region0;
+    enabled         true;
+    log             true;
+    executeControl  writeTime;
+    writeControl    writeTime;
+}
+
+writeCellCentres1
+{
+    // Mandatory entries (unmodifiable)
+    type            writeCellCentres;
+    libs            (fieldFunctionObjects);
+
+    // Optional entries (runtime modifiable)
+    patches         (roof.snow);
+
+    writePrecision  8;
+    writeToFile     true;
+    useUserTime     true;
+    region          region0;
+    enabled         true;
+    log             true;
+    executeControl  writeTime;
+    writeControl    writeTime;
+}
+
+writeZArea
+{
+    type coded;
+    libs (utilityFunctionObjects);
+
+    // Name of on-the-fly generated functionObject
+    name writeZArea;
+    executeControl  writeTime;
+    writeControl    writeTime;
+
+    codeWrite
+    #{
+        // Lookup U
+        const label patchID = mesh().boundary().findPatchID("roof.snow");
+
+        const vectorField &Sfp = mesh().Sf().boundaryField()[patchID];
+        vector zNormal = vector(0, 0, -1);
+
+        IOField<scalar> zArea
+        (
+            IOobject
+            (
+                "zArea",
+                mesh().time().timeName(),
+                mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            Sfp & zNormal
+        );
+        // Write
+        zArea.write();
+    #};
+}
+
+writeCellCentreZ
+{
+    type coded;
+    libs (utilityFunctionObjects);
+
+    // Name of on-the-fly generated functionObject
+    name writeCellCentreZ;
+    executeControl  writeTime;
+    writeControl    writeTime;
+
+    codeWrite
+    #{
+        // Lookup U
+        const label patchID = mesh().boundary().findPatchID("roof.snow");
+
+        const vectorField &Cfp = mesh().Cf().boundaryField()[patchID];
+
+        IOField<scalar> CellCentreZ
+        (
+            IOobject
+            (
+                "CellCentreZ",
+                mesh().time().timeName(),
+                mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            Cfp.component(2)
+        );
+        // Write
+        CellCentreZ.write();
+    #};
+}
