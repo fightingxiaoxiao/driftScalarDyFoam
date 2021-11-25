@@ -1,0 +1,64 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       pointVectorField;
+    object      pointMotionU;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    "(roof|top)"
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+
+    bottom.snow
+    {
+        type            codedFixedValue;
+        value           uniform (0 0 0);
+
+        name            MESH_UDF;
+    }
+
+    cubeX
+    {
+        type            fixedNormalSlip;
+        n               (1 0 0);
+    }
+
+    cubeY
+    {
+        type            fixedNormalSlip;
+        n               (0 1 0);
+    }
+
+    "(inlet|outlet)"
+    {
+        type            fixedNormalSlip;
+        n               (1 0 0);
+    }
+
+    sides
+    {
+        type            fixedNormalSlip;
+        n               (0 1 0);
+    }
+
+}
+
+
+// ************************************************************************* //

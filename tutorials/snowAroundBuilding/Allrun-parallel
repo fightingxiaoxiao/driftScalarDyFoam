@@ -1,0 +1,37 @@
+#!/bin/sh
+cd "${0%/*}" || exit                         # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions # Tutorial run functions
+#------------------------------------------------------------------------------
+# solve initial snow packing
+
+echo -e "\nSolving snow drifting..."
+
+driftSolver="driftScalarDyFoam"
+
+driftEndTime="11000"
+
+driftDeltaTime="1000"
+
+writeInterval="1"
+
+includeFile='#include \"postCLI\"'
+
+rasModel="kEpsilon"
+
+sed "s|RAS_MODEL|$rasModel|g" constant/turbulenceProperties.template > \
+    constant/turbulenceProperties
+
+restore0Dir
+
+sed "s|MESH_UDF|erosionDeposition|g" 0.orig/pointMotionU.template > 0/pointMotionU
+
+rm -r 0/pointMotionU.template
+rm -r 0/pointDisplacement.template
+
+sed "s|SOLVER|$driftSolver|g;s|END_TIME|$driftEndTime|g;s|DELTA_TIME|$driftDeltaTime|g;s|WRITE_INTERVAL|$writeInterval|g;s|INCLUDE|$includeFile|g" system/controlDict.template > system/controlDict
+
+runApplication blockMesh
+
+runApplication decomposePar
+
+runParallel $(getApplication)

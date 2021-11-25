@@ -1,0 +1,143 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+    class           dictionary;
+    object          codeDict;
+}
+
+
+erosionFlux
+{
+    // code
+    // \left.\left(\frac{\partial \phi}{\partial z}\right)\right|_{\text {surface}} 
+    // = -\frac{1}{D_{t}} \frac{\left|M_{\text {ero }}\right|}{A_{\mathrm{hol}}}
+    code
+    #{
+        // 获得当前Patch的ID
+        // label patchIndex = patch().index();
+        const scalar lowerLimit = 0.;
+
+        fvPatchField<scalar> Q
+        (
+            patch().lookupPatchField<volScalarField, scalar>("T")
+        );
+        
+        // 湍流黏度
+        const fvPatchField<scalar>& nut
+        (
+            patch().lookupPatchField<volScalarField, scalar>("nut")
+        );
+
+        // 质量交换场
+        const fvPatchField<scalar>& Mp
+        (
+            patch().lookupPatchField<volScalarField, scalar>("M")
+        );
+        
+        //Info << "Patch ID: " << patchIndex << endl;
+        //Info << "Adopt mass exchange boundary condition on patch \"" << patch().name() << "\"...";
+
+        // 获得全局的质量交换场
+        //const surfaceScalarField & MGlobal = this->db().objectRegistry::lookupObject<surfaceScalarField>("M");
+        
+        // 获得当前Patch的质量交换场
+        //const scalarField & Mp = MGlobal.boundaryField()[patchIndex];
+
+
+        // 获得与边界面相邻网格格心处的雪漂浓度
+        const tmp<scalarField> &QInt = patch().lookupPatchField<volScalarField, scalar>("T").patchInternalField();
+
+        vector zNormal = vector(0, 0, -1);
+
+        forAll(Q, i)
+        {
+            // 网格面在z方向的投影面积
+            scalar zNormalArea = patch().Sf()[i] & zNormal;
+            // z方向的浓度梯度
+            scalar zGrad = Mp[i] / zNormalArea / (nut[i] + 1e-16);
+
+            if(zGrad > 0 || fabs(patch().Cf()[i][2] - lowerLimit) < 1e-6)
+            {
+                zGrad = 0.;  //发生沉积时梯度为0
+            }
+
+            Q[i] = QInt()[i] - zGrad / patch().deltaCoeffs()[i];
+            if (Q[i] < 1e-4)
+            {
+                Info << "Q = "<< Q[i] << ", " << "QInt = " << QInt()[i] << endl;
+                Info << "Grad = "<< zGrad << endl;
+            }
+        }
+
+        operator == (Q);
+
+        //Info << "done." <<endl;
+    #};
+        
+    // Optional
+    codeInclude
+    #{
+        #include "fvCFD.H"
+    #};
+
+    // Optional
+    codeOptions 
+    #{
+        -I$(LIB_SRC)/finiteVolume/lnInclude \
+        -I$(LIB_SRC)/meshTools/lnInclude 
+    #};
+}
+
+erosionDeposition
+{
+    code
+    #{
+        
+        label patchIndex = patch().index();
+        const volScalarField& deltaH = this->db().objectRegistry::lookupObject<volScalarField>("deltaH");
+
+        primitivePatchInterpolation facePointInterp(deltaH.mesh().boundaryMesh()[patchIndex]);   //初始化插值类
+
+        const scalarField& deltaHp = deltaH.boundaryField()[patchIndex];
+        auto deltaHpp = facePointInterp.faceToPointInterpolate(deltaHp);                      //面心向节点插值
+        Info << "Successfully interpolate "<< deltaHpp().size() << " points." << endl;
+        Info << "Local points number = " << patch().localPoints().size() << endl;
+        pointField pVec(deltaHpp().size());
+
+        const scalar lowerLimit = 0.;
+
+        forAll(pVec, i)
+        {
+            pVec[i][0] = 0;
+            pVec[i][1] = 0;
+            pVec[i][2] = deltaHpp()[i];
+
+            if(patch().localPoints()[i][2] + pVec[i][2] * this->db().time().deltaTValue() < lowerLimit)
+            {    
+                pVec[i][2] = (lowerLimit - patch().localPoints()[i][2])/this->db().time().deltaTValue();
+            }
+        }
+
+        (*this) == pVec;
+    #};
+
+    codeInclude
+    #{
+        #include "fvCFD.H"
+        #include "primitivePatchInterpolation.H"
+    #};
+
+    codeOptions 
+    #{
+        -I$(LIB_SRC)/finiteVolume/lnInclude \
+        -I$(LIB_SRC)/meshTools/lnInclude 
+    #};
+}
