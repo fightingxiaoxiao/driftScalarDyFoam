@@ -1,8 +1,7 @@
 # driftScalarDyFoam: 基于OpenFOAM的风致雪漂求解器
 
+## [简体中文](./README_CN.md) | [English](./README.md)
 ## 介绍
-
-[English](./README.md) | [简体中文](./README_CN.md)
 
 本求解器使用标量输运方程模拟雪相在湍流大气层中的输运[<sup>[1]](#refer-1)[<sup>[2]](#refer-2)[<sup>[3]](#refer-3)
 
