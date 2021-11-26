@@ -61,9 +61,24 @@ nSubCycles      1000;               // 每个计算阶段内的最大子循环�
 
 ### 雪漂浓度边界
 
+积雪表面的浓度根据当前的侵蚀量给出一个Neumann边界条件[<sup>[1]](#refer-1)：
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\bg_white&space;\color{Red}&space;\left.\left(\frac{\partial&space;\phi}{\partial&space;\mathbf{n}}\right)\right|_{\text&space;{surface}}=&space;-\frac{1}{D_{t}}&space;q_\text{ero}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\bg_white&space;\color{Red}&space;\left.\left(\frac{\partial&space;\phi}{\partial&space;\mathbf{n}}\right)\right|_{\text&space;{surface}}=&space;-\frac{1}{D_{t}}&space;q_\text{ero}" title="\bg_white \color{Red} \left.\left(\frac{\partial \phi}{\partial \mathbf{n}}\right)\right|_{\text {surface}}= -\frac{1}{D_{t}} q_\text{ero}" /></a>
+
+在数值计算中，该Neumann边界条件被离散为如下形式：
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\color{Red}&space;\phi_{face}&space;=&space;\phi_{cell}&space;-&space;\Delta&space;\frac{q_\text{ero}}{D_{t}}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\color{Red}&space;\phi_{face}&space;=&space;\phi_{cell}&space;-&space;\Delta&space;\frac{q_\text{ero}}{D_{t}}" title="\color{Red} \phi_{face} = \phi_{cell} - \Delta \frac{q_\text{ero}}{D_{t}}" /></a>
+
+由于原生的OpenFOAM没有类似的边界条件，因此现有的方案是采用`codedFixedValue`边界条件在计算时进行动态编译,相关的内容可见算例中的`0.orig/T`及`system/codeDict`的`erosionFlux`代码段。
+
+此外，为了确保边界上的质量交换率能被正确更新，雪面的边界名称应当附加".snow"后缀，如"roof.snow"。
 ### 动网格
 
+根据每个面网格的雪质量交换率，`driftScalarDyFoam`创建了一个名为`deltaH`的面标量场来监控雪面的高度变化。在`0.orig/pointMotionU`及`system/codeDict`中，我们利用OpenFOAM原有的场映射组件，将面标量场映射为节点向量场，并同样采用`codedFixedValue`边界指定每个时间步（或称阶段）中的边界节点位移速度。因此，使用者应当结合自己的模型特征对`0.orig/pointMotionU`及`system/codeDict`中的`erosionDeposition`代码段进行改动。
+
 ## 相关论文
+
+如您对我们的项目感兴趣，可以在GitHub中点击Star以进行支持和持续关注。
 
 如您在研究中使用或借鉴了该项目，请引用：(相关论文正在投稿)
 
