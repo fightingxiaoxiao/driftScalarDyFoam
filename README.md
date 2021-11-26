@@ -35,6 +35,33 @@ wmake #编译项目
 
 ## 参考算例
 
+[平屋面积雪](./tutorials/flatRoof3D)
+
+[建筑周边积雪](./tutorials/snowAroundBuilding)
+
+## 快速开始
+
+driftScalarDyFoam参考scalarTransportFoam、simpleFoam及moveDynamicMesh开发。其算例框架与标准的OpenFOAM算例是一致的。需要额外补充的内容包括：
+
+### erosionDepositionProperties
+
+该字典应当放置在constant文件夹下，需要声明的参数包括：
+
+```cpp
+ca              7e-4;   // 即A_ero，控制侵蚀方程的常数
+rhoSnow         150;    // 雪的堆积密度         
+rhoAir          1;      // 空气密度，在不可压求解器中恒为1
+Uthreshold      0.2;    // 阈值剪切风速
+
+UResidual       (2e-4 5e-4 5e-4);   // 子循环中的速度残差阈值
+pResidual       5e-4;               // 子循环中的压力残差阈值
+TResidual       5e-6;               // 子循环中的浓度残差阈值
+nSubCycles      1000;               // 每个计算阶段内的最大子循环数
+```
+
+### 雪漂浓度边界
+
+### 动网格
 
 ## 相关论文
 
