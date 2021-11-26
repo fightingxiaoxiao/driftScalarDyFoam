@@ -74,7 +74,7 @@ nSubCycles      1000;               // 每个计算阶段内的最大子循环�
 此外，为了确保边界上的质量交换率能被正确更新，雪面的边界名称应当附加".snow"后缀，如"roof.snow"。
 ### 动网格
 
-根据每个面网格的雪质量交换率，`driftScalarDyFoam`创建了一个名为`deltaH`的面标量场来监控雪面的高度变化。在`0.orig/pointMotionU`及`system/codeDict`中，我们利用OpenFOAM原有的场映射组件，将面标量场映射为节点向量场，并同样采用`codedFixedValue`边界指定每个时间步（或称阶段）中的边界节点位移速度。因此，使用者应当结合自己的模型特征对`0.orig/pointMotionU`及`system/codeDict`中的`erosionDeposition`代码段进行改动。
+根据每个面网格的雪质量交换率，driftScalarDyFoam创建了一个名为`deltaH`的面标量场来监控雪面的高度变化。在`0.orig/pointMotionU`及`system/codeDict`中，我们利用OpenFOAM原有的场映射组件，将面标量场映射为节点向量场，并同样采用`codedFixedValue`边界指定每个时间步（或称阶段）中的边界节点位移速度。因此，使用者应当结合自己的模型特征对`0.orig/pointMotionU`及`system/codeDict`中的`erosionDeposition`代码段进行改动。
 
 ## 相关论文
 
