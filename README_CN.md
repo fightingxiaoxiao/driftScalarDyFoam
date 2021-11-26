@@ -14,9 +14,32 @@
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=\bg_white&space;\color{Red}q_{\text{ero}}=-A_\text{ero}&space;u_{*}^{2}\left(1-\frac{u_{*t}^{2}}{u_*^{2}}\right),&space;\quad&space;u_*>u_{*t}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\bg_white&space;\color{Red}q_{\text{ero}}=-A_\text{ero}&space;u_{*}^{2}\left(1-\frac{u_{*t}^{2}}{u_*^{2}}\right),&space;\quad&space;u_*>u_{*t}" title="\color{Red}q_{\text{ero}}=-A_\text{ero} u_{*}^{2}\left(1-\frac{u_{*t}^{2}}{u_*^{2}}\right), \quad u_*>u_{*t}" /></a>
 
+## 版本适配
+本项目的主分支面向OpenFOAM的ESI分支开发([https://www.openfoam.com](https://www.openfoam.com))，基金会分支尚在开发中。
+
+目前已验证的版本适配包括：
+
+driftScalarDyFoam-master - [OpenFOAM-v2012](https://www.openfoam.com/download/release-history), [OpenFOAM-v2106](https://www.openfoam.com/download/release-history)
+
+## 下载与安装
+
+```shell
+cd $WM_PROJECT_DIR  #进入OpenFOAM根目录
+mkdir extend        #建立一个任意名称的空文件夹
+cd extend
+
+git clone https://github.com/fightingxiaoxiao/driftScalarDyFoam.git
+
+cd driftScalarDyFoam
+wmake #编译项目
+```
+
+## 参考算例
+
+
 ## 相关论文
 
-如您在您的研究中使用或借鉴了该项目，请引用：(相关论文正在投稿)
+如您在研究中使用或借鉴了该项目，请引用：(相关论文正在投稿)
 
 ## 鸣谢
 
