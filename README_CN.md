@@ -6,14 +6,13 @@
 
 本求解器使用标量输运方程模拟雪相在湍流大气层中的输运[<sup>[1]](#refer-1)[<sup>[2]](#refer-2)[<sup>[3]](#refer-3)
 
-<a href="https://www.codecogs.com/eqnedit.php?latex=\frac{\partial&space;\phi}{\partial&space;t}&plus;\frac{\partial&space;\phi&space;u_{j}}{\partial&space;x_{j}}&plus;\frac{\partial&space;\phi&space;w_{f}}{\partial&space;x_{3}}=\frac{\partial}{\partial&space;x_{j}}&space;D_{t}&space;\frac{\partial&space;\phi}{\partial&space;x_{j}}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\frac{\partial&space;\phi}{\partial&space;t}&plus;\frac{\partial&space;\phi&space;u_{j}}{\partial&space;x_{j}}&plus;\frac{\partial&space;\phi&space;w_{f}}{\partial&space;x_{3}}=\frac{\partial}{\partial&space;x_{j}}&space;D_{t}&space;\frac{\partial&space;\phi}{\partial&space;x_{j}}" title="\frac{\partial \phi}{\partial t}+\frac{\partial \phi u_{j}}{\partial x_{j}}+\frac{\partial \phi w_{f}}{\partial x_{3}}=\frac{\partial}{\partial x_{j}} D_{t} \frac{\partial \phi}{\partial x_{j}}" /></a>
+<a href="https://www.codecogs.com/eqnedit.php?latex=\bg_white&space;\color{Red}\frac{\partial&space;\phi}{\partial&space;t}&plus;\frac{\partial&space;\phi&space;u_{j}}{\partial&space;x_{j}}&plus;\frac{\partial&space;\phi&space;w_{f}}{\partial&space;x_{3}}=\frac{\partial}{\partial&space;x_{j}}&space;D_{t}&space;\frac{\partial&space;\phi}{\partial&space;x_{j}}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\bg_white&space;\color{Red}\frac{\partial&space;\phi}{\partial&space;t}&plus;\frac{\partial&space;\phi&space;u_{j}}{\partial&space;x_{j}}&plus;\frac{\partial&space;\phi&space;w_{f}}{\partial&space;x_{3}}=\frac{\partial}{\partial&space;x_{j}}&space;D_{t}&space;\frac{\partial&space;\phi}{\partial&space;x_{j}}" title="\color{Red}\frac{\partial \phi}{\partial t}+\frac{\partial \phi u_{j}}{\partial x_{j}}+\frac{\partial \phi w_{f}}{\partial x_{3}}=\frac{\partial}{\partial x_{j}} D_{t} \frac{\partial \phi}{\partial x_{j}}" /></a>
 
 并基于侵蚀/沉积方程调整积雪表面网格
 
-$$q_{\text{dep}} = -\phi_{p} w_f \left(1-\frac{u_{*}^{2}}{u_{*t}^{2}}\right),\quad u_*<u_{*t}$$
+<a href="https://www.codecogs.com/eqnedit.php?latex=\bg_white&space;\color{Red}q_{\text{dep}}&space;=&space;-\phi_{p}&space;w_f&space;\left(1-\frac{u_{*}^{2}}{u_{*t}^{2}}\right),\quad&space;u_*<u_{*t}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\bg_white&space;\color{Red}q_{\text{dep}}&space;=&space;-\phi_{p}&space;w_f&space;\left(1-\frac{u_{*}^{2}}{u_{*t}^{2}}\right),\quad&space;u_*<u_{*t}" title="\color{Red}q_{\text{dep}} = -\phi_{p} w_f \left(1-\frac{u_{*}^{2}}{u_{*t}^{2}}\right),\quad u_*<u_{*t}" /></a>
 
-$$q_{\text{ero}}=-A_\text{ero} u_{*}^{2}\left(1-\frac{u_{*t}^{2}}{u_*^{2}}\right), \quad u_*>u_{*t}$$
-
+<a href="https://www.codecogs.com/eqnedit.php?latex=\bg_white&space;\color{Red}q_{\text{ero}}=-A_\text{ero}&space;u_{*}^{2}\left(1-\frac{u_{*t}^{2}}{u_*^{2}}\right),&space;\quad&space;u_*>u_{*t}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\bg_white&space;\color{Red}q_{\text{ero}}=-A_\text{ero}&space;u_{*}^{2}\left(1-\frac{u_{*t}^{2}}{u_*^{2}}\right),&space;\quad&space;u_*>u_{*t}" title="\color{Red}q_{\text{ero}}=-A_\text{ero} u_{*}^{2}\left(1-\frac{u_{*t}^{2}}{u_*^{2}}\right), \quad u_*>u_{*t}" /></a>
 
 ## 相关论文
 
