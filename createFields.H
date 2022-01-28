@@ -156,8 +156,7 @@ volVectorField wallShearStress
         IOobject::READ_IF_PRESENT,
         IOobject::AUTO_WRITE
     ),
-    mesh,
-    dimensionedVector(sqr(dimLength)/sqr(dimTime), Zero)
+    mesh
 );
 
 
