@@ -1,0 +1,3 @@
+driftUnsteadyScalarFoam.C
+
+EXE = $(FOAM_APPBIN)/driftUnsteadyScalarFoam
