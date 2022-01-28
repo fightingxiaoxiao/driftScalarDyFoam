@@ -104,7 +104,6 @@ int main(int argc, char *argv[])
             TEqn.solve();
             fvOptions.correct(T);
 
-            volSymmTensorField Reff = turbulence->devReff();
             // 修正质量交换率M
             vector zNormal = vector(0.,0.,-1.);
             for (label patchi : snowPatchList)
@@ -112,12 +111,10 @@ int main(int argc, char *argv[])
                 // 获取雪面的剪切应力
                 // get shear stress on snow surface
                 const vectorField &Sfp = mesh.Sf().boundaryField()[patchi];         // 面积矢量
-                const scalarField &magSfp = mesh.magSf().boundaryField()[patchi];   // 面积矢量模长
+                //const scalarField &magSfp = mesh.magSf().boundaryField()[patchi];   // 面积矢量模长
                 const scalarField &Tp = T.boundaryField()[patchi];                  // 边界处的雪漂浓度
-                const symmTensorField& Reffp = Reff.boundaryField()[patchi];
 
-                vectorField& ssp = wallShearStress.boundaryFieldRef()[patchi];
-                ssp = (-Sfp/magSfp) & Reffp;    // 剪切应力
+                vectorField& ssp = wallShearStress.boundaryFieldRef()[patchi];      // 剪切应力
 
                 scalarField UShear = sqrt(mag(ssp)/rhoAir);         // 剪切风速模量
                 scalarField &Mp = M.boundaryFieldRef()[patchi];
