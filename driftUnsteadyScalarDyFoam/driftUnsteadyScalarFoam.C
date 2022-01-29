@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-
+        T.correctBoundaryConditions();
             fvScalarMatrix TEqn
             (
                   fvm::ddt(T)
