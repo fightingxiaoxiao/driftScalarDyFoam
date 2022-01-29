@@ -83,9 +83,47 @@ int main(int argc, char *argv[])
     const scalar ca = readScalar(erosionDepositionProperties.lookup("ca"));
     const scalar Uthreshold = readScalar(erosionDepositionProperties.lookup("Uthreshold"));
 
+    // 修正质量交换率M
+    vector zNormal = vector(0., 0., -1.);
+    for (label patchi : snowPatchList)
+    {
+        // 获取雪面的剪切应力
+        // get shear stress on snow surface
+        const vectorField &Sfp = mesh.Sf().boundaryField()[patchi]; // 面积矢量
+        //const scalarField &magSfp = mesh.magSf().boundaryField()[patchi];   // 面积矢量模长
+        const scalarField &Tp = T.boundaryField()[patchi]; // 边界处的雪漂浓度
+
+        vectorField &ssp = wallShearStress.boundaryFieldRef()[patchi]; // 剪切应力
+
+        scalarField UShear = sqrt(mag(ssp) / rhoAir); // 剪切风速模量
+        scalarField &Mp = M.boundaryFieldRef()[patchi];
+        scalarField &deltaHp = deltaH.boundaryFieldRef()[patchi];
+
+        // 更新质量交换率（侵蚀/沉积）
+        // update mass exchange rate on snow surface (erosion & deposition)
+        //Info << "Update mass exchange rate." << endl;
+        forAll(Mp, i)
+        {
+            const scalar zArea = Sfp[i] & zNormal;
+            if (UShear[i] > Uthreshold) // 侵蚀
+            {
+                //Mp[i] = -ca * rhoSnow * UShear[i] * (1.-sqr(Uthreshold)/sqr(UShear[i])) *zArea;
+                Mp[i] = -ca * rhoSnow * (sqr(UShear[i]) - sqr(Uthreshold)) * zArea;
+            }
+            else // 沉积
+            {
+                Mp[i] = Tp[i] * mag(wf.value()) * (1 - sqr(UShear[i]) / sqr(Uthreshold)) * zArea;
+            }
+            //tmpDeltaH[i] = Mp[i] / rhoSnow / zArea * runTime.deltaTValue();
+            deltaHp[i] = Mp[i] / rhoSnow / zArea;
+        }
+    }
+
     while (simple.loop())
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
+
+
 
         while (simple.correctNonOrthogonal())
         {
@@ -103,43 +141,9 @@ int main(int argc, char *argv[])
             fvOptions.constrain(TEqn);
             TEqn.solve();
             fvOptions.correct(T);
-
-            // 修正质量交换率M
-            vector zNormal = vector(0.,0.,-1.);
-            for (label patchi : snowPatchList)
-            {
-                // 获取雪面的剪切应力
-                // get shear stress on snow surface
-                const vectorField &Sfp = mesh.Sf().boundaryField()[patchi];         // 面积矢量
-                //const scalarField &magSfp = mesh.magSf().boundaryField()[patchi];   // 面积矢量模长
-                const scalarField &Tp = T.boundaryField()[patchi];                  // 边界处的雪漂浓度
-
-                vectorField& ssp = wallShearStress.boundaryFieldRef()[patchi];      // 剪切应力
-
-                scalarField UShear = sqrt(mag(ssp)/rhoAir);         // 剪切风速模量
-                scalarField &Mp = M.boundaryFieldRef()[patchi];
-                scalarField &deltaHp = deltaH.boundaryFieldRef()[patchi];
-
-                // 更新质量交换率（侵蚀/沉积）
-                // update mass exchange rate on snow surface (erosion & deposition)
-                //Info << "Update mass exchange rate." << endl;
-                forAll(Mp, i)
-                {
-                    const scalar zArea = Sfp[i] & zNormal;
-                    if (UShear[i] > Uthreshold) // 侵蚀
-                    {
-                        //Mp[i] = -ca * rhoSnow * UShear[i] * (1.-sqr(Uthreshold)/sqr(UShear[i])) *zArea;
-                        Mp[i] = -ca * rhoSnow * (sqr(UShear[i]) - sqr(Uthreshold)) * zArea;
-                    }
-                    else // 沉积
-                    {
-                        Mp[i] = Tp[i] * mag(wf.value()) * (1 - sqr(UShear[i])/sqr(Uthreshold)) * zArea;
-                    }
-                    //tmpDeltaH[i] = Mp[i] / rhoSnow / zArea * runTime.deltaTValue();
-                    deltaHp[i] = Mp[i] / rhoSnow / zArea;
-                }
-            }
         }
+
+        
 
 
         runTime.write();
