@@ -65,7 +65,9 @@ int main(int argc, char *argv[])
     #include "setRootCaseLists.H"
     #include "createTime.H"
     #include "createMesh.H"
-    #include "createControl.H"
+        
+    simpleControl simple(mesh);
+
     #include "createFields.H"
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -124,16 +126,14 @@ int main(int argc, char *argv[])
         }
     }
 
-    while (runTime.run())
+    while (simple.loop())
     {
-        ++runTime;
-
         Info<< "Time = " << runTime.timeName() << nl << endl;
-
-        T.correctBoundaryConditions();
+        while (simple.correctNonOrthogonal())
+        {
             fvScalarMatrix TEqn
             (
-                  fvm::ddt(T)
+                fvm::ddt(T)
                 + fvm::div(phi, T)                              // 被动输运         // passive transport
                 + fvm::div(phiWf, T)                            // 以速度wf下落      // fall down with velocity w_f
                 - fvm::laplacian(turbulence->nut()/S_ct, T)     // 湍散             // turbulent diffusion
@@ -141,13 +141,14 @@ int main(int argc, char *argv[])
                 fvOptions(T)
             );
 
-            TEqn.relax();
+            //TEqn.relax();
             fvOptions.constrain(TEqn);
             TEqn.solve();
             fvOptions.correct(T);
+        }
         
-
         runTime.write();
+        runTime.printExecutionTime(Info);
     }
 
     Info<< "End\n" << endl;
