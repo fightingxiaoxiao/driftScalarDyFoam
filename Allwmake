@@ -1,0 +1,4 @@
+wmake
+
+cd driftUnsteadyScalarDyFoam
+wmake
