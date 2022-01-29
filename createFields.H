@@ -157,7 +157,7 @@ volVectorField wallShearStress
         IOobject::AUTO_WRITE
     ),
     mesh,
-    dimensionedScalar("shearStress_", dimensionSet(0, 2, -2, 0, 0, 0 ,0), Zero)
+    dimensionedVector(sqr(dimLength)/sqr(dimTime), Zero)
 );
 
 
