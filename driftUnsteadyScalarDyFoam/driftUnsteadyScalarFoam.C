@@ -83,6 +83,8 @@ int main(int argc, char *argv[])
     const scalar ca = readScalar(erosionDepositionProperties.lookup("ca"));
     const scalar Uthreshold = readScalar(erosionDepositionProperties.lookup("Uthreshold"));
 
+    turbulence->correct();
+    
     volSymmTensorField Reff = turbulence->devReff();
     
 
@@ -131,7 +133,7 @@ int main(int argc, char *argv[])
         Info<< "Time = " << runTime.timeName() << nl << endl;
         while (simple.correctNonOrthogonal())
         {
-            turbulence->correct();
+            
 
             fvScalarMatrix TEqn
             (
