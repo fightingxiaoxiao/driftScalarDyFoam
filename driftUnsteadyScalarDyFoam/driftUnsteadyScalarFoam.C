@@ -47,11 +47,10 @@ Solver details
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "fvOptions.H"
 #include "singlePhaseTransportModel.H"
 #include "turbulentTransportModel.H"
-#include "simpleControl.H"
-
+#include "pisoControl.H"
+#include "fvOptions.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
@@ -63,12 +62,13 @@ int main(int argc, char *argv[])
 
     #include "addCheckCaseOptions.H"
     #include "setRootCaseLists.H"
+    
     #include "createTime.H"
     #include "createMesh.H"
-        
-    simpleControl simple(mesh);
+    #include "createControl.H"
+    #include "createFields_.H"
 
-    #include "createFields.H"
+    //#include "initContinuityErrs.H"
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
     const scalar Uthreshold = readScalar(erosionDepositionProperties.lookup("Uthreshold"));
 
     turbulence->correct();
-    
+
     volSymmTensorField Reff = turbulence->devReff();
     
 
@@ -128,13 +128,11 @@ int main(int argc, char *argv[])
         }
     }
 
-    while (simple.loop())
+    while (runTime.loop())
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
-        while (simple.correctNonOrthogonal())
-        {
-            
 
+        {
             fvScalarMatrix TEqn
             (
                 fvm::ddt(T)
@@ -145,7 +143,7 @@ int main(int argc, char *argv[])
                 fvOptions(T)
             );
 
-            //TEqn.relax();
+            TEqn.relax();
             fvOptions.constrain(TEqn);
             TEqn.solve();
             fvOptions.correct(T);
