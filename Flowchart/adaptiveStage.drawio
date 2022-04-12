@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2022-04-12T08:13:07.815Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36 Edg/100.0.1185.36" etag="oY8SwCk0IqI-lwSKBJLv" version="17.4.2" type="github">
+<mxfile host="app.diagrams.net" modified="2022-04-12T08:34:21.302Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36 Edg/100.0.1185.36" etag="a--9z9sjN18PdMxrhWus" version="17.4.2" type="github">
   <diagram id="YJrwdoqkivSocRl9cA38" name="Page-1">
-    <mxGraphModel dx="1038" dy="583" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="1" shadow="0">
+    <mxGraphModel dx="593" dy="333" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="1" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -10,11 +10,49 @@
         <mxCell id="iD6kjVdtd8yfhUJygVZn-1" value="give an initial time step \(\Delta t\)" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Times New Roman;fontSize=16;" vertex="1" parent="1">
           <mxGeometry x="220.5" y="40" width="199" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="iD6kjVdtd8yfhUJygVZn-2" value="calculated the erosion/deposition height \(\Delta h\) on each face" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Times New Roman;fontSize=16;" vertex="1" parent="1">
+        <mxCell id="iD6kjVdtd8yfhUJygVZn-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontFamily=Times New Roman;fontSize=16;" edge="1" parent="1" source="iD6kjVdtd8yfhUJygVZn-2" target="iD6kjVdtd8yfhUJygVZn-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iD6kjVdtd8yfhUJygVZn-2" value="calculated the erosion/deposition height \(\Delta h\) on each face using \(\Delta t\)" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Times New Roman;fontSize=16;" vertex="1" parent="1">
           <mxGeometry x="200" y="120" width="240" height="60" as="geometry" />
         </mxCell>
         <mxCell id="iD6kjVdtd8yfhUJygVZn-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;fontFamily=Times New Roman;fontSize=16;" edge="1" parent="1" source="iD6kjVdtd8yfhUJygVZn-2" target="iD6kjVdtd8yfhUJygVZn-2">
           <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iD6kjVdtd8yfhUJygVZn-16" value="yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;fontFamily=Times New Roman;fontSize=16;labelBackgroundColor=none;" edge="1" parent="1" source="iD6kjVdtd8yfhUJygVZn-7" target="iD6kjVdtd8yfhUJygVZn-17">
+          <mxGeometry x="-0.5" y="20" relative="1" as="geometry">
+            <mxPoint x="320.1428571428571" y="300" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="iD6kjVdtd8yfhUJygVZn-7" value="\( \Delta h &lt; \Delta h_\mathrm{limit}&#xa;\)" style="rhombus;whiteSpace=wrap;fontFamily=Times New Roman;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="235.32" y="220" width="169.37" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="iD6kjVdtd8yfhUJygVZn-15" value="" style="endArrow=classic;html=1;rounded=0;fontFamily=Times New Roman;fontSize=16;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="iD6kjVdtd8yfhUJygVZn-18">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="404.68999999999994" y="239.71" as="sourcePoint" />
+            <mxPoint x="480" y="239.71" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="iD6kjVdtd8yfhUJygVZn-19" value="no" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=16;fontFamily=Times New Roman;labelBackgroundColor=none;" vertex="1" connectable="0" parent="iD6kjVdtd8yfhUJygVZn-15">
+          <mxGeometry x="-0.4105" y="-2" relative="1" as="geometry">
+            <mxPoint x="-7" y="-12" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="iD6kjVdtd8yfhUJygVZn-17" value="Update mesh using \(\Delta t\)" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Times New Roman;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="240" y="300" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="iD6kjVdtd8yfhUJygVZn-18" value="\(\Delta t =\Delta t&amp;nbsp; \frac{\Delta h_\mathrm{limit}&lt;br&gt;}{\Delta h}\)&amp;nbsp;" style="rounded=1;fontFamily=Times New Roman;fontSize=16;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="215" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="iD6kjVdtd8yfhUJygVZn-20" value="" style="endArrow=classic;html=1;rounded=0;labelBackgroundColor=none;fontFamily=Times New Roman;fontSize=16;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="iD6kjVdtd8yfhUJygVZn-18" target="iD6kjVdtd8yfhUJygVZn-2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="360" y="220" as="sourcePoint" />
+            <mxPoint x="410" y="170" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="540" y="150" />
+            </Array>
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
