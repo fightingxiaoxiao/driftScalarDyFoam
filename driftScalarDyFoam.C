@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
                 vectorField& ssp = wallShearStress.boundaryFieldRef()[patchi];
                 ssp = (-Sfp/magSfp) & Reffp;    // 剪切应力
 
-                scalarField UShear = sqrt(mag(ssp)/rhoAir);         // 剪切风速模量
+                scalarField UShear = sqrt(mag(ssp));         // 剪切风速模量
                 scalarField &Mp = M.boundaryFieldRef()[patchi];
                 scalarField &deltaHp = deltaH.boundaryFieldRef()[patchi];
 
@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
                     if (UShear[i] > Uthreshold) // 侵蚀
                     {
                         //Mp[i] = -ca * rhoSnow * UShear[i] * (1.-sqr(Uthreshold)/sqr(UShear[i])) *zArea;
-                        Mp[i] = -ca * rhoSnow * (sqr(UShear[i]) - sqr(Uthreshold)) * zArea;
+                        Mp[i] = -ca * (sqr(UShear[i]) - sqr(Uthreshold)) * zArea;
                     }
                     else // 沉积
                     {
