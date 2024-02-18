@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
 
             #include "TEqn.H"
 
-            volSymmTensorField Reff = turbulence->devReff();
+            tmp<volSymmTensorField> Reff = turbulence->devReff();
             // 修正质量交换率M
             vector zNormal = vector(0.,0.,-1.);
             for (label patchi : snowPatchList)
@@ -188,12 +188,17 @@ int main(int argc, char *argv[])
                 const vectorField &Sfp = mesh.Sf().boundaryField()[patchi];         // 面积矢量
                 const scalarField &magSfp = mesh.magSf().boundaryField()[patchi];   // 面积矢量模长
                 const scalarField &Tp = T.boundaryField()[patchi];                  // 边界处的雪漂浓度
-                const symmTensorField& Reffp = Reff.boundaryField()[patchi];
+                symmTensorField Reffp = Reff().boundaryField()[patchi];
 
                 vectorField& ssp = wallShearStress.boundaryFieldRef()[patchi];
                 ssp = (-Sfp/magSfp) & Reffp;    // 剪切应力
 
-                scalarField UShear = sqrt(mag(ssp));         // 剪切风速模量
+                scalarField UShear(Sfp.size());
+                forAll(ssp, i)
+                {
+                    UShear[i] = Foam::sqrt(mag(ssp[i]));         // 剪切风速模量
+                }
+                
                 scalarField &Mp = M.boundaryFieldRef()[patchi];
                 scalarField &deltaHp = deltaH.boundaryFieldRef()[patchi];
 
